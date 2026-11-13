@@ -1,0 +1,67 @@
+# So sánh Trade-off các giải pháp ra lệnh cho Cấu trúc Prompt Tiêu chuẩn & Định dạng
+## Bước 1: Đề xuất 2 prompt mẫu
+
+Chủ đề áp dụng: Yêu cầu AI đóng vai trò phân tích dữ liệu bán hàng và trả về kết quả dưới định dạng JSON theo khung **CREATE** (áp dụng cho bài toán trích xuất dữ liệu sản phẩm).
+
+-   **Giải pháp 1 (Đơn giản - Ngắn gọn):**
+    
+    > "Hãy phân tích đoạn văn bản bán hàng sau và trích xuất tên sản phẩm, giá tiền, số lượng đã bán thành dạng JSON.
+    > 
+    > Dữ liệu: [Chèn dữ liệu]"
+    
+-   **Giải pháp 2 (Chi tiết - Khung CREATE & Ràng buộc chặt chẽ):**
+    
+    > "**Context (Bối cảnh):** Bạn là một chuyên gia phân tích dữ liệu thương mại điện tử chuyên nghiệp, cực kỳ cẩn thận và tuân thủ tuyệt đối quy tắc dữ liệu.
+    > 
+    > **Request (Yêu cầu):** Trích xuất thông tin chi tiết từ đoạn văn bản bán hàng được cung cấp thành danh sách các đối tượng JSON.
+    > 
+    > **Explanation (Giải thích/Ví dụ Few-shot):**
+    > 
+    > Ví dụ đầu vào: 'Áo thun nam giá 150k đã bán 20 cái.' -> Kết quả: `[{"product_name": "Áo thun nam", "price": "150000", "sold_quantity": 20}]`
+    > 
+    > **Action (Hành động):** Chỉ trả về đoạn mã JSON hợp lệ duy nhất, không kèm theo bất kỳ lời chào, giải thích hoặc văn bản nào bên ngoài cặp thẻ JSON.
+    > 
+    > **Tone (Giọng điệu):** Khách quan, chuẩn xác.
+    > 
+    > **Extras (Bổ sung):** Nếu thiếu trường dữ liệu nào, hãy điền giá trị `null`. Đảm bảo cú pháp JSON không có lỗi (valid JSON).
+    > 
+    > Dữ liệu cần phân tích: [Chèn dữ liệu]"
+    
+
+## Bước 2: Lập bảng so sánh Trade-off
+
+|**Tiêu chí**|**Giải pháp 1 (Đơn giản)**|**Giải pháp 2 (Chi tiết)**|
+|-|-|-|
+|**Độ dễ hiểu**|Cao (Dễ viết, nhanh chóng)|Trung bình (Cần cấu trúc dài dòng, nhiều quy tắc)|
+|**Tốn token**|Ít (Tiết kiệm chi phí và tốc độ phản hồi nhanh)|Nhiều hơn (Tốn token ngữ cảnh cho ví dụ và ràng buộc)\
+|**Chặn lỗi biên**|Trung bình (Dễ bị AI sinh thêm chữ ngoài JSON hoặc sai cấu trúc)|Cực tốt (Kiểm soát chặt chẽ nhờ Few-shot và ràng buộc định dạng)|
+
+## Bước 3: Lựa chọn và chạy thử
+
+### 1. Lựa chọn phương án tối ưu
+
+-   **Phương án lựa chọn:**  **Giải pháp 2 (Chi tiết)**.
+    
+-   **Lý do chọn:** Đối với các bài toán yêu cầu **định dạng đầu ra nghiêm ngặt (như JSON, Table)** để tích hợp vào hệ thống phần mềm hoặc tự động hóa quy trình, việc sử dụng prompt đơn giản thường dẫn đến lỗi định dạng (AI hay kèm theo lời thoại chào hỏi bên ngoài JSON). Giải pháp 2 áp dụng khung CREATE kết hợp Few-shot giúp kiểm soát lỗi biên cực tốt, đảm bảo dữ liệu đầu ra sạch và sẵn sàng sử dụng.
+    
+
+### 2. Kết quả chạy thử (Chạy mô phỏng với Giải pháp 2)
+
+-   **Dữ liệu đầu vào:**  _"Hôm nay cửa hàng bán được 15 đôi giày thể thao Nike giá 1.200.000 VNĐ và 30 chiếc áo khoác gió giá 450.000 VNĐ."_
+    
+-   **Kết quả đầu ra từ AI (JSON hợp lệ):**
+
+```
+[
+  {
+    "product_name": "Giày thể thao Nike",
+    "price": "1200000 VNĐ",
+    "sold_quantity": 15
+  },
+  {
+    "product_name": "Áo khoác gió",
+    "price": "450000 VNĐ",
+    "sold_quantity": 30
+  }
+]
+```

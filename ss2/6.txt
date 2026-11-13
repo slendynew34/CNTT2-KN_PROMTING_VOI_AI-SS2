@@ -1,0 +1,29 @@
+# Loại bỏ "Lời chào vô nghĩa" bằng Kỹ thuật Structured Output
+## Phần 1: Phân tích nguyên nhân lỗi (Tại sao AI hay sinh ra lời chào hỏi?)
+
+Các mô hình ngôn ngữ lớn (LLM) thường có thói quen tự động chèn lời chào mở đầu và lời chúc kết luận xuất phát từ các nguyên nhân cốt lõi sau:
+
+1.  **Dữ liệu huấn luyện (Pre-training Dataset Bias):** Phần lớn dữ liệu văn bản trên internet mà AI học qua (như email, bài viết blog, sách hướng dẫn, hội thoại chăm sóc khách hàng) đều tuân thủ các quy tắc giao tiếp xã hội của loài người. Con người khi giao tiếp luôn có xu hướng lịch sự: mở đầu bằng lời chào và kết thúc bằng lời chúc. Do đó, mô hình ghi nhớ đây là "mẫu phản hồi chuẩn mực" theo thói quen ngôn ngữ tự nhiên.
+    
+2.  **Quá trình tinh chỉnh hành vi (RLHF - Reinforcement Learning from Human Feedback):** Trong quá trình huấn luyện bằng phản hồi của con người, các kỹ thuật viên thường đánh giá cao những câu trả lời mang tính lịch sự, thân thiện, có đầu có cuối của trợ lý ảo. Điều này vô tình củng cố trọng số khiến AI luôn ưu tiên đóng vai "người hỗ trợ thân thiện" (helpful assistant) thay vì một "cỗ máy xử lý dữ liệu thuần túy".
+    
+3.  **Thiếu định hướng ngữ cảnh kỹ thuật (Lack of System-level Persona/Constraint):** Nếu câu lệnh (Prompt) chỉ ra lệnh thuần túy dạng trích xuất dữ liệu mà không đặt ra ràng buộc phủ định (Negative Constraint) hoặc giới hạn định dạng nghiêm ngặt, AI sẽ mặc định quay về cơ chế trò chuyện thông thường để làm hài lòng người dùng.
+    
+
+## Phần 2: Hoàn thiện Prompt ép cấu trúc (Master Prompt chống lỗi Backend)
+
+Dưới đây là Master Prompt hoàn chỉnh tích hợp kỹ thuật **Negative Constraint** và **Định dạng đầu ra nghiêm ngặt** để hệ thống Backend của TechShop parse thành công 100%:
+```
+[Context] Bạn là một bộ chuyển đổi dữ liệu tự động (API Parser) của hệ thống ERP TechShop, chuyên chịu trách nhiệm trích xuất biên bản bảo hành thành chuỗi JSON thuần túy để nạp vào Database. 
+
+[Request] Hãy đọc biên bản tiếp nhận bảo hành dạng văn bản tự do được cung cấp bên dưới và trích xuất thành các trường dữ liệu: "customer_name" (tên khách hàng), "device" (thiết bị), và "issue" (lỗi gặp phải).
+
+[Negative Constraint & Strict Formatting Rules - CỰC KỲ QUAN TRỌNG]:
+- TUYỆT ĐỐI KHÔNG viết bất kỳ lời chào hỏi, lời mở đầu, câu giải thích hay lời chúc kết luận nào.
+- TUYỆT ĐỐI KHÔNG sử dụng khối mã Markdown (không dùng dấu ```json hoặc ``` ở đầu và cuối).
+- Chỉ trả về chuỗi JSON thuần túy (Raw JSON string).
+- Chuỗi trả về PHẢI bắt đầu bằng ký tự `{` và kết thúc bằng ký tự `}`. Đảm bảo cú pháp JSON hợp lệ để hàm JSON.parse() không bị lỗi.
+
+[Action] Dữ liệu biên bản cần xử lý:
+[Chèn nội dung biên bản bảo hành vào đây]
+```

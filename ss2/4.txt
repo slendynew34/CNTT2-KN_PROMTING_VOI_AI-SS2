@@ -1,0 +1,50 @@
+# Chẩn đoán và "Phẫu thuật" Prompt Sơ sài thành Chuẩn CREATE
+
+## Phần 1: Phân tích chẩn đoán lỗi các thành phần CREATE
+
+Dựa trên bảng khảo sát hiện trạng của chuỗi bán lẻ **TechShop**, dưới đây là chi tiết các thành phần theo khung **CREATE**  _(Context - Request - Explanation - Action - Tone - Extras)_ đang bị thiếu trong từng câu lệnh:
+
+1.  **Bộ phận CSKH ("Viết tin nhắn xin lỗi khách vì hàng giao chậm."):**
+    
+    -   **Thành phần bị thiếu:**  **Context** (Thiếu bối cảnh đơn hàng, lý do chậm trễ cụ thể),  **Character/Tone** (Không định hình rõ giọng điệu đồng cảm, lịch sự của nhân viên CSKH),  **Action/Extras** (Thiếu phương án đền bù cụ thể, thời gian dự kiến giao bù và thông tin liên hệ).
+        
+2.  **Bộ phận Bán hàng ("Tư vấn cho anh khách mua laptop gaming."):**
+    
+    -   **Thành phần bị thiếu:**  **Context** (Không rõ phân khúc tài chính, nhu cầu chơi game cụ thể hay phần mềm đồ họa đi kèm),  **Request chi tiết** (Yêu cầu tư vấn chung chung không có tiêu chí lọc),  **Explanation / Examples** (Thiếu ví dụ về cấu hình mẫu mong muốn),  **Extras** (Thiếu thông tin về các chương trình ưu đãi, quà tặng kèm hiện hành tại TechShop).
+        
+3.  **Bộ phận Bảo hành ("Báo giá thay màn hình laptop vỡ cho khách."):**
+    
+    -   **Thành phần bị thiếu:**  **Context** (Không xác định rõ mã máy, đời máy hoặc thương hiệu laptop),  **Character** (Không đóng vai kỹ thuật viên bảo hành chuyên nghiệp),  **Type of Output / Action** (Thiếu cấu trúc bảng báo giá chi tiết, quy định bảo hành linh kiện thay thế),  **Adjustment / Extras** (Thiếu chính sách hỗ trợ chi phí hoặc chính sách hậu mãi kèm theo).
+        
+
+## Phần 2: Nâng cấp chuẩn hóa câu lệnh (Master Prompt chuẩn CREATE)
+
+Dưới đây là việc "phẫu thuật" và viết lại trọn vẹn 3 câu lệnh trên thành 3 Master Prompt hoàn chỉnh, bám sát bối cảnh thực tế hoạt động tại **TechShop**:
+
+### 1. Master Prompt cho Bộ phận CSKH
+```
+[Context] Bạn là Chuyên viên Chăm sóc Khách hàng cao cấp tại hệ thống bán lẻ công nghệ TechShop.
+[Request] Hãy soạn một tin nhắn xin lỗi khách hàng vì đơn hàng giao bị chậm trễ hơn so với cam kết ban đầu (chậm 2 ngày do sự cố đơn vị vận chuyển).
+[Explanation] Tin nhắn cần thể hiện sự chân thành, nhận toàn bộ trách nhiệm, khéo léo xoa dịu tâm lý khách hàng và giữ chân họ tiếp tục tin tưởng TechShop.
+[Action] Viết nội dung tin nhắn hoàn chỉnh, ngắn gọn (phù hợp gửi qua SMS hoặc Zalo), trong đó bao gồm: lời xin lỗi, lý do ngắn gọn, thời gian giao hàng mới dự kiến (ngày mai), và chính sách đền bù (tặng mã giảm giá 10% cho đơn hàng tiếp theo kèm lời cảm ơn sự kiên nhẫn của khách).
+[Tone] Ân cần, lịch sự, cầu thị và chuyên nghiệp.
+[Extras] Bổ sung các placeholder (vị trí điền thông tin) như [Tên Khách Hàng], [Mã Đơn Hàng], [Tên Sản Phẩm] để nhân viên dễ dàng thay thế khi sử dụng thực tế.
+```
+### 2. Master Prompt cho Bộ phận Bán hàng
+```
+[Context] Bạn là Chuyên gia Tư vấn Bán hàng thiết bị gaming kỳ cựu tại cửa hàng TechShop, am hiểu sâu sắc về phần cứng, hiệu năng tản nhiệt và benchmark các dòng máy.
+[Request] Hãy tư vấn và đề xuất chính xác 2 mẫu laptop gaming tối ưu nhất trong phân khúc giá từ 20.000.000 VNĐ đến 25.000.000 VNĐ cho khách hàng đang tìm mua máy để chơi game AAA và học lập trình.
+[Explanation] Khách hàng thường đắn đo giữa hiệu năng GPU (card đồ họa), dung lượng RAM và khả năng nâng cấp lâu dài. Do đó, cần phân tích rõ điểm mạnh riêng của từng mẫu máy để khách dễ dàng ra quyết định.
+[Action] Trình bày câu trả lời dưới dạng danh sách rõ ràng gồm: Tên máy, Cấu hình tản nhiệt & phần cứng nổi bật, Giá bán niêm yết tại TechShop, và Quà tặng kèm hiện có (ví dụ: balo, chuột gaming).
+[Tone] Nhiệt tình, khách quan, am hiểu chuyên môn và thuyết phục.
+[Extras] Đưa ra thêm lưu ý ngắn về việc có nên nâng cấp thêm RAM/SSD ngay tại thời điểm mua hay không.
+```
+### 3. Master Prompt cho Bộ phận Bảo hành
+```
+[Context] Bạn là Trưởng bộ phận Kỹ thuật và Bảo hành của trung tâm dịch vụ TechShop.
+[Request] Lập bảng báo giá chi tiết dịch vụ thay thế màn hình cho dòng laptop phổ biến (ví dụ: ASUS TUF / Acer Nitro) bị vỡ kính/hỏng tấm nền hiển thị.
+[Explanation] Khách hàng cần thấy rõ sự minh bạch về chi phí linh kiện chính hãng, chi phí công thợ và thời gian cam kết bảo hành sau khi sửa chữa để yên tâm giao máy.
+[Action] Xuất kết quả dưới dạng Bảng Markdown gồm các cột: [Tên linh kiện/Dịch vụ], [Loại linh kiện (Chính hãng / OEM tương thích)], [Đơn giá (VNĐ)], [Thời gian bảo hành], và [Thời gian xử lý dự kiến].
+[Tone] Minh bạch, chuẩn mực, rõ ràng và uy tín.
+[Extras] Kèm theo điều kiện bảo hành (ví dụ: không bảo hành màn hình bị sọc do rơi vỡ hoặc vào nước lần tiếp theo) và ưu đãi vệ sinh máy miễn phí đi kèm.
+```

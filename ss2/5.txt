@@ -1,0 +1,50 @@
+# Cơ chế In-Context Learning trong Phân loại Review Khách hàng
+## Phần 1: Phân tích cơ chế In-Context Learning (ICL)
+
+Cơ chế **In-Context Learning (Học trong ngữ cảnh)** cho phép các mô hình ngôn ngữ lớn (LLM) hiểu và thực hiện các nhiệm vụ mới ngay lập tức thông qua các ví dụ được cung cấp trực tiếp trong câu lệnh (prompt),  **hoàn toàn không cần phải huấn luyện lại (retrain) hoặc cập nhật trọng số (weights)** của mô hình. Cơ chế này hoạt động dựa trên các nguyên lý cốt lõi sau:
+
+1.  **Kích hoạt không gian biểu diễn sẵn có (Latent Knowledge Activation):** Trong quá trình huấn luyện sơ bộ (Pre-training) trên một tập dữ liệu văn bản khổng lồ, LLM đã tiếp thu lượng lớn tri thức về cấu trúc ngữ pháp, ngữ nghĩa, sắc thái biểu cảm, cũng như các hình thức ẩn dụ, mỉa mai và tiếng lóng trong tự nhiên. Tuy nhiên, khi đưa ra một câu hỏi đơn thuần (Zero-shot), mô hình có thể kích hoạt sai mô hình xác suất do thiếu ngữ cảnh cụ thể. Việc cung cấp các ví dụ mẫu (Few-shot) đóng vai trò như một "chìa khóa" định hướng, kích hoạt các vùng tri thức và mẫu câu tương ứng trong không gian vector của mô hình.
+    
+2.  **Cơ chế Attention (Attention Mechanism) và Pattern Matching:** Khi các ví dụ mẫu (`Input -> Output`) xuất hiện ngay trong cửa sổ ngữ cảnh (Context Window), cơ chế chú ý tự động (`Self-Attention`) của Transformer sẽ tính toán mối quan hệ ngữ nghĩa giữa các từ khóa trong câu review cần phân tích với các ví dụ mẫu đi kèm. Mô hình nhận diện cấu trúc logic:  _"Kiểu câu có từ ngữ khen ngợi ở bề nổi nhưng đi kèm thông số cực đoan (như nhiệt độ 98°C, pin tụt 10% trong 5 phút) thực chất mang ý nghĩa mỉa mai (Tiêu cực)"_.
+    
+3.  **Định hướng phân phối xác suất đầu ra (Logits Shift):** Thay vì dự đoán nhãn dựa trên tần suất xuất hiện chung chung của từ ngữ, các cặp ví dụ mẫu ép mô hình dịch chuyển phân phối xác suất sinh token kết quả. Mô hình hiểu rằng định dạng phản hồi mong muốn phải bám sát logic gán nhãn đã được dạy trong ngữ cảnh hiện tại, từ đó giúp giải quyết triệt để các bẫy ngữ nghĩa (Surface Lexical Meaning) như trường hợp review khen "máy ấm như lò sưởi".
+    
+
+## Phần 2: Sửa lỗi bằng Few-shot (Master Prompt hoàn chỉnh cho TechShop)
+
+Dưới đây là một Master Prompt theo kỹ thuật Few-shot hoàn chỉnh, tích hợp 3 cặp ví dụ mẫu nhằm huấn luyện AI nhận diện chính xác các đánh giá mang sắc thái mỉa mai, khen đểu về **nhiệt độ**,  **pin** và **thời gian giao hàng** tại TechShop:
+```
+[Context] Bạn là hệ thống Phân tích Cảm xúc Khách hàng cao cấp thuộc bộ phận Đảm bảo Chất lượng của TechShop. Nhiệm vụ của bạn là phân tích chính xác bản chất thực sự của các đánh giá từ khách hàng, đặc biệt là nhận diện các trường hợp mỉa mai, khen đểu (sử dụng từ ngữ tích cực ở bề nổi nhưng phản ánh sự bức xúc về lỗi sản phẩm hoặc dịch vụ).
+
+[Request] Hãy phân tích đoạn review mới được cung cấp và đưa ra nhãn cảm xúc thực tế (TÍCH CỰC hoặc TIÊU CỰC), kèm theo giải thích ngắn gọn dựa trên sắc thái ẩn ý.
+
+[Explanation - Ví dụ mẫu Few-shot]
+
+--- Ví dụ 1 (Chủ đề: Nhiệt độ quá nóng) ---
+Input: "Máy thiết kế đẹp mê ly, cầm rất đầm tay, mùa đông ôm máy chơi game thì khỏi cần bật lò sưởi vì nhiệt độ CPU lên hẳn 98 độ C!"
+Output: {
+  "sentiment": "TIÊU CỰC",
+  "reason": "Sử dụng từ ngữ khen ('đẹp mê ly', 'đầm tay') nhưng thực chất mỉa mai lỗi quá nhiệt nguy hiểm (98 độ C)."
+}
+
+--- Ví dụ 2 (Chủ đề: Lỗi pin yếu) ---
+Input: "Điện thoại pin trâu kinh khủng, vừa rút sạc 100% mở YouTube xem được đúng 5 phút tụt xuống 10 báo yếu pin, đúng là sản phẩm siêu tiết kiệm thời gian cho chủ nhân!"
+Output: {
+  "sentiment": "TIÊU CỰC",
+  "reason": "Dùng cụm từ 'pin trâu kinh khủng' và 'siêu tiết kiệm thời gian' theo chiều hướng mỉa mai để chê pin hỏng, tụt pin quá nhanh."
+}
+
+--- Ví dụ 3 (Chủ đề: Thời gian giao hàng chậm) ---
+Input: "Shop giao hàng nhanh như vận tốc của loài rùa biển, đặt từ lúc mùa hè mà sang đến đông mới nhận được hàng, dịch vụ tuyệt vời ông mặt trời!"
+Output: {
+  "sentiment": "TIÊU CỰC",
+  "reason": "Khen mỉa mai 'nhanh như rùa biển' và 'tuyệt vời ông mặt trời' để chỉ trích thời gian giao hàng chậm trễ nghiêm trọng."
+}
+
+[Action] Bây giờ, hãy áp dụng quy luật trên để phân tích review mới sau đây:
+Review: [Chèn review cần phân tích vào đây]
+
+[Tone] Khách quan, sắc sảo, logic và không bị đánh lừa bởi từ ngữ biểu cảm bề nổi.
+
+[Extras] Kết quả trả về bắt buộc phải tuân theo định dạng cấu trúc JSON gồm hai trường: "sentiment" (TÍCH CỰC / TIÊU CỰC) và "reason" (giải thích ngắn gọn).
+```
